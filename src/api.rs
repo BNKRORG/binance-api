@@ -1,23 +1,13 @@
 use crate::account::Account;
-use crate::client::Client;
-use crate::config::{
-    Config, FUTURES_MAINNET, FUTURES_TESTNET, FUTURES_WS_MAINNET, FUTURES_WS_TESTNET, SPOT_MAINNET,
-    SPOT_TESTNET, SPOT_WS_MAINNET, SPOT_WS_TESTNET,
-};
-use crate::futures::account::FuturesAccount;
-use crate::futures::general::FuturesGeneral;
-use crate::futures::market::FuturesMarket;
-use crate::futures::userstream::FuturesUserStream;
+use crate::client::BinanceClient;
+use crate::config::{Config, SPOT_MAINNET, SPOT_TESTNET};
 use crate::general::General;
-use crate::market::Market;
-use crate::userstream::UserStream;
 use crate::savings::Savings;
 
 #[allow(clippy::all)]
 pub enum API {
     Spot(Spot),
     Savings(Sapi),
-    Futures(Futures),
 }
 
 /// Endpoint for production and test orders.
@@ -56,48 +46,6 @@ pub enum Sapi {
     SpotFuturesTransfer,
 }
 
-pub enum Futures {
-    Ping,
-    Time,
-    ExchangeInfo,
-    Depth,
-    Trades,
-    HistoricalTrades,
-    AggTrades,
-    Klines,
-    ContinuousKlines,
-    IndexPriceKlines,
-    MarkPriceKlines,
-    PremiumIndex,
-    FundingRate,
-    Ticker24hr,
-    TickerPrice,
-    BookTicker,
-    AllForceOrders,
-    AllOpenOrders,
-    AllOrders,
-    UserTrades,
-    Order,
-    PositionRisk,
-    Balance,
-    PositionSide,
-    OpenInterest,
-    OpenInterestHist,
-    TopLongShortAccountRatio,
-    TopLongShortPositionRatio,
-    GlobalLongShortAccountRatio,
-    TakerlongshortRatio,
-    LvtKlines,
-    IndexInfo,
-    ChangeInitialLeverage,
-    MarginType,
-    PositionMargin,
-    Account,
-    OpenOrders,
-    UserDataStream,
-    Income,
-}
-
 impl From<API> for String {
     fn from(item: API) -> Self {
         String::from(match item {
@@ -132,57 +80,19 @@ impl From<API> for String {
                 Sapi::DepositAddress => "/sapi/v1/capital/deposit/address",
                 Sapi::SpotFuturesTransfer => "/sapi/v1/futures/transfer",
             },
-            API::Futures(route) => match route {
-                Futures::Ping => "/fapi/v1/ping",
-                Futures::Time => "/fapi/v1/time",
-                Futures::ExchangeInfo => "/fapi/v1/exchangeInfo",
-                Futures::Depth => "/fapi/v1/depth",
-                Futures::Trades => "/fapi/v1/trades",
-                Futures::HistoricalTrades => "/fapi/v1/historicalTrades",
-                Futures::AggTrades => "/fapi/v1/aggTrades",
-                Futures::Klines => "/fapi/v1/klines",
-                Futures::ContinuousKlines => "/fapi/v1/continuousKlines",
-                Futures::IndexPriceKlines => "/fapi/v1/indexPriceKlines",
-                Futures::MarkPriceKlines => "/fapi/v1/markPriceKlines",
-                Futures::PremiumIndex => "/fapi/v1/premiumIndex",
-                Futures::FundingRate => "/fapi/v1/fundingRate",
-                Futures::Ticker24hr => "/fapi/v1/ticker/24hr",
-                Futures::TickerPrice => "/fapi/v1/ticker/price",
-                Futures::BookTicker => "/fapi/v1/ticker/bookTicker",
-                Futures::AllForceOrders => "/fapi/v1/allForceOrders",
-                Futures::AllOpenOrders => "/fapi/v1/allOpenOrders",
-                Futures::AllOrders => "/fapi/v1/allOrders",
-                Futures::UserTrades => "/fapi/v1/userTrades",
-                Futures::PositionSide => "/fapi/v1/positionSide/dual",
-                Futures::Order => "/fapi/v1/order",
-                Futures::PositionRisk => "/fapi/v2/positionRisk",
-                Futures::Balance => "/fapi/v2/balance",
-                Futures::OpenInterest => "/fapi/v1/openInterest",
-                Futures::OpenInterestHist => "/futures/data/openInterestHist",
-                Futures::TopLongShortAccountRatio => "/futures/data/topLongShortAccountRatio",
-                Futures::TopLongShortPositionRatio => "/futures/data/topLongShortPositionRatio",
-                Futures::GlobalLongShortAccountRatio => "/futures/data/globalLongShortAccountRatio",
-                Futures::TakerlongshortRatio => "/futures/data/takerlongshortRatio",
-                Futures::LvtKlines => "/fapi/v1/lvtKlines",
-                Futures::IndexInfo => "/fapi/v1/indexInfo",
-                Futures::ChangeInitialLeverage => "/fapi/v1/leverage",
-                Futures::MarginType => "/fapi/v1/marginType",
-                Futures::PositionMargin => "/fapi/v1/positionMargin",
-                Futures::Account => "/fapi/v2/account",
-                Futures::OpenOrders => "/fapi/v1/openOrders",
-                Futures::UserDataStream => "/fapi/v1/listenKey",
-                Futures::Income => "/fapi/v1/income",
-            },
         })
     }
 }
 
 pub trait Binance {
     fn new(api_key: Option<String>, secret_key: Option<String>) -> Self;
+
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Self;
-    fn set_verbose(&mut self, verbose: bool);
+
     fn set_testnet(&mut self, testnet: bool);
 }
 
@@ -192,15 +102,13 @@ impl Binance for General {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> General {
         General {
-            client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
+            client: BinanceClient::new(api_key, secret_key, config.rest_api_endpoint.clone()),
         }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
     }
 
     fn set_testnet(&mut self, testnet: bool) {
@@ -218,16 +126,14 @@ impl Binance for Account {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Account {
         Account {
-            client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
+            client: BinanceClient::new(api_key, secret_key, config.rest_api_endpoint.clone()),
             recv_window: config.recv_window,
         }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
     }
 
     fn set_testnet(&mut self, testnet: bool) {
@@ -245,16 +151,14 @@ impl Binance for Savings {
     }
 
     fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
+        api_key: Option<String>,
+        secret_key: Option<String>,
+        config: &Config,
     ) -> Self {
         Self {
-            client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
+            client: BinanceClient::new(api_key, secret_key, config.rest_api_endpoint.clone()),
             recv_window: config.recv_window,
         }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
     }
 
     fn set_testnet(&mut self, testnet: bool) {
@@ -262,187 +166,6 @@ impl Binance for Savings {
             self.client.set_host(SPOT_TESTNET.into());
         } else {
             self.client.set_host(SPOT_MAINNET.into());
-        }
-    }
-}
-
-impl Binance for Market {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> Market {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
-    fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
-    ) -> Market {
-        Market {
-            client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
-            recv_window: config.recv_window,
-        }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
-    }
-
-    fn set_testnet(&mut self, testnet: bool) {
-        if testnet {
-            self.client.set_host(SPOT_TESTNET.into());
-        } else {
-            self.client.set_host(SPOT_MAINNET.into());
-        }
-    }
-}
-
-impl Binance for UserStream {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> UserStream {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
-    fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
-    ) -> UserStream {
-        UserStream {
-            client: Client::new(api_key, secret_key, config.rest_api_endpoint.clone()),
-            recv_window: config.recv_window,
-        }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
-    }
-
-    fn set_testnet(&mut self, testnet: bool) {
-        if testnet {
-            self.client.set_host(SPOT_WS_TESTNET.into());
-        } else {
-            self.client.set_host(SPOT_WS_MAINNET.into());
-        }
-    }
-}
-
-// *****************************************************
-//              Binance Futures API
-// *****************************************************
-
-impl Binance for FuturesGeneral {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> FuturesGeneral {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
-    fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
-    ) -> FuturesGeneral {
-        FuturesGeneral {
-            client: Client::new(
-                api_key,
-                secret_key,
-                config.futures_rest_api_endpoint.clone(),
-            ),
-        }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
-    }
-
-    fn set_testnet(&mut self, testnet: bool) {
-        if testnet {
-            self.client.set_host(FUTURES_TESTNET.into());
-        } else {
-            self.client.set_host(FUTURES_MAINNET.into());
-        }
-    }
-}
-
-impl Binance for FuturesMarket {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> FuturesMarket {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
-    fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
-    ) -> FuturesMarket {
-        FuturesMarket {
-            client: Client::new(
-                api_key,
-                secret_key,
-                config.futures_rest_api_endpoint.clone(),
-            ),
-            recv_window: config.recv_window,
-        }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
-    }
-
-    fn set_testnet(&mut self, testnet: bool) {
-        if testnet {
-            self.client.set_host(FUTURES_TESTNET.into());
-        } else {
-            self.client.set_host(FUTURES_MAINNET.into());
-        }
-    }
-}
-
-impl Binance for FuturesAccount {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> Self {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
-    fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
-    ) -> Self {
-        Self {
-            client: Client::new(
-                api_key,
-                secret_key,
-                config.futures_rest_api_endpoint.clone(),
-            ),
-            recv_window: config.recv_window,
-        }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
-    }
-
-    fn set_testnet(&mut self, testnet: bool) {
-        if testnet {
-            self.client.set_host(FUTURES_TESTNET.into());
-        } else {
-            self.client.set_host(FUTURES_MAINNET.into());
-        }
-    }
-}
-
-impl Binance for FuturesUserStream {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> FuturesUserStream {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
-    fn new_with_config(
-        api_key: Option<String>, secret_key: Option<String>, config: &Config,
-    ) -> FuturesUserStream {
-        FuturesUserStream {
-            client: Client::new(
-                api_key,
-                secret_key,
-                config.futures_rest_api_endpoint.clone(),
-            ),
-            recv_window: config.recv_window,
-        }
-    }
-
-    fn set_verbose(&mut self, verbose: bool) {
-        self.client.set_verbose(verbose);
-    }
-
-    fn set_testnet(&mut self, testnet: bool) {
-        if testnet {
-            self.client.set_host(FUTURES_WS_TESTNET.into());
-        } else {
-            self.client.set_host(FUTURES_WS_MAINNET.into());
         }
     }
 }
