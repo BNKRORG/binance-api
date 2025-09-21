@@ -3,7 +3,7 @@ use crate::client::BinanceClient;
 use crate::error::{Error, Result};
 use crate::model::{Empty, ExchangeInformation, ServerTime, Symbol};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct General {
     pub client: BinanceClient,
 }

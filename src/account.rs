@@ -7,7 +7,7 @@ use crate::error::{Error, Result};
 use crate::model::{AccountInformation, Balance};
 use crate::util::build_signed_request;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Account {
     pub client: BinanceClient,
     pub recv_window: u64,

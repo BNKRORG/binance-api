@@ -6,7 +6,7 @@ use crate::error::Result;
 use crate::model::{AssetDetail, CoinInfo, DepositAddress, SpotFuturesTransferType, TransactionId};
 use crate::util::build_signed_request;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Savings {
     pub client: BinanceClient,
     pub recv_window: u64,

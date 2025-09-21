@@ -1,3 +1,5 @@
+use std::fmt;
+
 use hex::encode as hex_encode;
 use hmac::{Hmac, Mac};
 use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, USER_AGENT};
@@ -14,6 +16,14 @@ pub struct BinanceClient {
     secret_key: String,
     host: String,
     inner_client: Client,
+}
+
+impl fmt::Debug for BinanceClient {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("BinanceClient")
+            .field("host", &self.host)
+            .finish()
+    }
 }
 
 impl BinanceClient {
