@@ -3,16 +3,16 @@ use serde_json::{Value, from_value};
 
 use crate::error::{Error, Result};
 
-#[derive(Deserialize, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 pub struct Empty {}
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerTime {
     pub server_time: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExchangeInformation {
     pub timezone: String,
@@ -21,7 +21,7 @@ pub struct ExchangeInformation {
     pub symbols: Vec<Symbol>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RateLimit {
     pub rate_limit_type: String,
@@ -30,7 +30,7 @@ pub struct RateLimit {
     pub limit: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Symbol {
     pub symbol: String,
@@ -46,7 +46,7 @@ pub struct Symbol {
     pub filters: Vec<Filters>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(tag = "filterType")]
 pub enum Filters {
     #[serde(rename = "PRICE_FILTER")]
@@ -136,7 +136,7 @@ pub enum Filters {
     MaxNumOrderAmends { max_num_order_amends: Option<u16> },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountInformation {
     pub maker_commission: f32,
@@ -149,7 +149,7 @@ pub struct AccountInformation {
     pub balances: Vec<Balance>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Balance {
     pub asset: String,
@@ -157,7 +157,7 @@ pub struct Balance {
     pub locked: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Order {
     pub symbol: String,
@@ -183,7 +183,7 @@ pub struct Order {
     pub orig_quote_order_qty: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderCanceled {
     pub symbol: String,
@@ -191,7 +191,7 @@ pub struct OrderCanceled {
     pub order_id: Option<u64>,
     pub client_order_id: Option<String>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SpotFuturesTransferType {
     SpotToUsdtFutures = 1,
@@ -200,13 +200,13 @@ pub enum SpotFuturesTransferType {
     CoinFuturesToSpot = 4,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionId {
     pub tran_id: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     pub symbol: String,
@@ -236,7 +236,7 @@ fn default_stop_price() -> f64 {
     0.0
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FillInfo {
     #[serde(with = "string_or_float")]
@@ -252,11 +252,11 @@ pub struct FillInfo {
 ///
 /// Currently, the API responds {} on a successfull test transaction,
 /// hence this struct has no fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestResponse {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderBook {
     pub last_update_id: u64,
@@ -264,7 +264,7 @@ pub struct OrderBook {
     pub asks: Vec<Asks>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Bids {
     #[serde(with = "string_or_float")]
     pub price: f64,
@@ -278,7 +278,7 @@ impl Bids {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Asks {
     #[serde(with = "string_or_float")]
     pub price: f64,
@@ -286,49 +286,49 @@ pub struct Asks {
     pub qty: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDataStream {
     pub listen_key: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Success {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum Prices {
     AllPrices(Vec<SymbolPrice>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct SymbolPrice {
     pub symbol: String,
     #[serde(with = "string_or_float")]
     pub price: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct AveragePrice {
     pub mins: u64,
     #[serde(with = "string_or_float")]
     pub price: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
 pub enum BookTickers {
     AllBookTickers(Vec<Tickers>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum KlineSummaries {
     AllKlineSummaries(Vec<KlineSummary>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Tickers {
     pub symbol: String,
@@ -342,7 +342,7 @@ pub struct Tickers {
     pub ask_qty: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeHistory {
     pub id: u64,
@@ -358,7 +358,7 @@ pub struct TradeHistory {
     pub is_best_match: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PriceStats {
     pub symbol: String,
@@ -388,7 +388,7 @@ pub struct PriceStats {
     pub count: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct AggTrade {
     #[serde(rename = "T")]
     pub time: u64,
@@ -408,7 +408,7 @@ pub struct AggTrade {
     pub qty: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDataStreamExpiredEvent {
     #[serde(rename = "e")]
@@ -418,7 +418,7 @@ pub struct UserDataStreamExpiredEvent {
     pub event_time: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountUpdateEvent {
     #[serde(rename = "e")]
@@ -431,7 +431,7 @@ pub struct AccountUpdateEvent {
     pub data: AccountUpdateDataEvent,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountUpdateDataEvent {
     #[serde(rename = "m")]
@@ -444,7 +444,7 @@ pub struct AccountUpdateDataEvent {
     pub positions: Vec<EventPosition>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventBalance {
     #[serde(rename = "a")]
@@ -457,7 +457,7 @@ pub struct EventBalance {
     pub balance_change: String, // Balance Change except PnL and Commission
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventPosition {
     #[serde(rename = "s")]
@@ -478,7 +478,7 @@ pub struct EventPosition {
     pub position_side: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BalanceUpdateEvent {
     #[serde(rename = "B")]
@@ -494,7 +494,7 @@ pub struct BalanceUpdateEvent {
     pub last_account_update_time: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderTradeEvent {
     #[serde(rename = "e")]
@@ -589,7 +589,7 @@ pub struct OrderTradeEvent {
 /// Update Speed: Real-time
 ///
 /// <https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#aggregate-trade-streams>
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AggrTradesEvent {
     #[serde(rename = "e")]
@@ -633,7 +633,7 @@ pub struct AggrTradesEvent {
 /// Update Speed: Real-time
 ///
 /// <https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#trade-streams>
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeEvent {
     #[serde(rename = "e")]
@@ -670,7 +670,7 @@ pub struct TradeEvent {
     pub m_ignore: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexPriceEvent {
     #[serde(rename = "e")]
@@ -687,7 +687,7 @@ pub struct IndexPriceEvent {
 }
 // https://binance-docs.github.io/apidocs/futures/en/#mark-price-stream
 // https://binance-docs.github.io/apidocs/delivery/en/#mark-price-stream
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MarkPriceEvent {
     #[serde(rename = "E")]
@@ -718,7 +718,7 @@ pub struct MarkPriceEvent {
 // Object({"E": Number(1626118018407), "e": String("forceOrder"), "o": Object({"S": String("SELL"), "T": Number(1626118018404), "X": String("FILLED"), "ap": String("33028.07"), "f": String("IOC"), "l": String("0.010"), "o": String("LIMIT"), "p": String("32896.00"), "q": String("0.010"), "s": String("BTCUSDT"), "z": String("0.010")})})
 // https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiquidationEvent {
     #[serde(rename = "e")]
@@ -731,7 +731,7 @@ pub struct LiquidationEvent {
     pub liquidation_order: LiquidationOrder,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LiquidationOrder {
     #[serde(rename = "s")]
@@ -768,7 +768,7 @@ pub struct LiquidationOrder {
     pub order_trade_time: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BookTickerEvent {
     #[serde(rename = "u")]
@@ -790,7 +790,7 @@ pub struct BookTickerEvent {
     pub best_ask_qty: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DayTickerEvent {
     #[serde(rename = "e")]
@@ -863,7 +863,7 @@ pub struct DayTickerEvent {
     pub num_trades: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WindowTickerEvent {
     #[serde(rename = "e")]
@@ -918,7 +918,7 @@ pub struct WindowTickerEvent {
     pub num_trades: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MiniTickerEvent {
     #[serde(rename = "e")]
@@ -949,7 +949,7 @@ pub struct MiniTickerEvent {
     pub quote_volume: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KlineEvent {
     #[serde(rename = "e")]
@@ -967,7 +967,7 @@ pub struct KlineEvent {
 
 // https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-streams
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContinuousKlineEvent {
     #[serde(rename = "e")]
@@ -988,7 +988,7 @@ pub struct ContinuousKlineEvent {
 
 // https://binance-docs.github.io/apidocs/delivery/en/#index-kline-candlestick-streams
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexKlineEvent {
     #[serde(rename = "e")]
@@ -1004,7 +1004,7 @@ pub struct IndexKlineEvent {
     pub kline: IndexKline,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct KlineSummary {
     pub open_time: i64,
 
@@ -1064,7 +1064,7 @@ impl TryFrom<&Vec<Value>> for KlineSummary {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Kline {
     #[serde(rename = "t")]
@@ -1119,7 +1119,7 @@ pub struct Kline {
     pub ignore_me: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContinuousKline {
     #[serde(rename = "t")]
@@ -1172,7 +1172,7 @@ pub struct ContinuousKline {
 }
 
 // https://binance-docs.github.io/apidocs/delivery/en/#index-kline-candlestick-streams
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexKline {
     #[serde(rename = "t")]
@@ -1227,7 +1227,7 @@ pub struct IndexKline {
     pub ignore_me5: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DepthOrderBookEvent {
     #[serde(rename = "e")]
@@ -1257,7 +1257,7 @@ pub struct DepthOrderBookEvent {
 }
 
 /// Response to the Savings API get all coins request
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CoinInfo {
     pub coin: String,
@@ -1284,7 +1284,7 @@ pub struct CoinInfo {
 }
 
 /// Part of the Savings API get all coins response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Network {
     pub address_regex: String,
@@ -1314,7 +1314,7 @@ pub struct Network {
     pub withdraw_integer_multiple: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetDetail {
     #[serde(with = "string_or_float")]
@@ -1329,7 +1329,7 @@ pub struct AssetDetail {
     pub deposit_tip: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct DepositAddress {
     pub address: String,
     pub coin: String,
