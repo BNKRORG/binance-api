@@ -84,8 +84,10 @@ impl From<API> for String {
     }
 }
 
-pub trait Binance {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> Self;
+pub trait Binance: Sized {
+    fn new(api_key: Option<String>, secret_key: Option<String>) -> Self {
+        Self::new_with_config(api_key, secret_key, &Config::default())
+    }
 
     fn new_with_config(
         api_key: Option<String>,
@@ -97,10 +99,6 @@ pub trait Binance {
 }
 
 impl Binance for General {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> General {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
     fn new_with_config(
         api_key: Option<String>,
         secret_key: Option<String>,
@@ -121,16 +119,12 @@ impl Binance for General {
 }
 
 impl Binance for Account {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> Account {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
     fn new_with_config(
         api_key: Option<String>,
         secret_key: Option<String>,
         config: &Config,
-    ) -> Account {
-        Account {
+    ) -> Self {
+        Self {
             client: BinanceClient::new(api_key, secret_key, config.rest_api_endpoint.clone()),
             recv_window: config.recv_window,
         }
@@ -146,10 +140,6 @@ impl Binance for Account {
 }
 
 impl Binance for Savings {
-    fn new(api_key: Option<String>, secret_key: Option<String>) -> Self {
-        Self::new_with_config(api_key, secret_key, &Config::default())
-    }
-
     fn new_with_config(
         api_key: Option<String>,
         secret_key: Option<String>,
