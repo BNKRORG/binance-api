@@ -13,5 +13,3 @@ pub mod model;
 pub mod account;
 pub mod api;
 pub mod config;
-pub mod general;
-pub mod savings;

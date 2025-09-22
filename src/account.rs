@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::fmt::Display;
 
 use crate::api::{API, Spot};
 use crate::client::BinanceClient;
@@ -11,85 +10,6 @@ use crate::util::build_signed_request;
 pub struct Account {
     pub client: BinanceClient,
     pub recv_window: u64,
-}
-
-pub enum OrderType {
-    Limit,
-    Market,
-    StopLossLimit,
-}
-
-impl OrderType {
-    pub fn from_int(value: i32) -> Option<Self> {
-        match value {
-            1 => Some(OrderType::Limit),
-            2 => Some(OrderType::Market),
-            3 => Some(OrderType::StopLossLimit),
-            _ => None,
-        }
-    }
-}
-
-impl Display for OrderType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Limit => write!(f, "LIMIT"),
-            Self::Market => write!(f, "MARKET"),
-            Self::StopLossLimit => write!(f, "STOP_LOSS_LIMIT"),
-        }
-    }
-}
-
-pub enum OrderSide {
-    Buy,
-    Sell,
-}
-
-impl OrderSide {
-    pub fn from_int(value: i32) -> Option<Self> {
-        match value {
-            1 => Some(OrderSide::Buy),
-            2 => Some(OrderSide::Sell),
-            _ => None,
-        }
-    }
-}
-
-impl Display for OrderSide {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Buy => write!(f, "BUY"),
-            Self::Sell => write!(f, "SELL"),
-        }
-    }
-}
-
-#[allow(clippy::all)]
-pub enum TimeInForce {
-    GTC,
-    IOC,
-    FOK,
-}
-
-impl TimeInForce {
-    pub fn from_int(value: i32) -> Option<Self> {
-        match value {
-            1 => Some(TimeInForce::GTC),
-            2 => Some(TimeInForce::IOC),
-            3 => Some(TimeInForce::FOK),
-            _ => None,
-        }
-    }
-}
-
-impl Display for TimeInForce {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::GTC => write!(f, "GTC"),
-            Self::IOC => write!(f, "IOC"),
-            Self::FOK => write!(f, "FOK"),
-        }
-    }
 }
 
 impl Account {
