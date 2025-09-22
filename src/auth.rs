@@ -1,3 +1,5 @@
+//! Binance authentication
+
 use std::fmt;
 
 use crate::error::Error;
@@ -7,8 +9,13 @@ use crate::error::Error;
 pub enum BinanceAuth {
     /// No authentication
     None,
-    /// API Key and Secret
-    ApiKeys { api_key: String, secret_key: String },
+    /// API Keys
+    ApiKeys {
+        /// API Key
+        api_key: String,
+        /// Secret Key
+        secret_key: String,
+    },
 }
 
 impl fmt::Debug for BinanceAuth {

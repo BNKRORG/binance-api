@@ -1,3 +1,5 @@
+//! Binance client
+
 use std::collections::BTreeMap;
 use std::fmt;
 
@@ -15,7 +17,7 @@ use crate::error::Error;
 use crate::model::{AccountInformation, Balance};
 use crate::util::build_signed_request;
 
-/// Binance Client
+/// Binance client
 #[derive(Clone)]
 pub struct BinanceClient {
     client: Client,
@@ -33,6 +35,7 @@ impl fmt::Debug for BinanceClient {
 }
 
 impl BinanceClient {
+    /// Construct new binance client
     pub fn new(auth: BinanceAuth, config: BinanceConfig) -> Self {
         Self {
             client: Client::builder()
@@ -109,7 +112,7 @@ impl BinanceClient {
         self.handle_http_response(response).await
     }
 
-    // Account Information
+    /// Get account information
     pub async fn get_account(&self) -> Result<AccountInformation, Error> {
         // Build signed request
         let request: String = build_signed_request(BTreeMap::new(), self.recv_window)?;
@@ -119,7 +122,7 @@ impl BinanceClient {
             .await
     }
 
-    // Balance for a single Asset
+    /// Get balance for a single asset
     pub async fn get_balance<S>(&self, asset: S) -> Result<Balance, Error>
     where
         S: AsRef<str>,

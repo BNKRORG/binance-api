@@ -28,12 +28,10 @@ pub fn build_signed_request_custom(
     if recv_window > 0 {
         parameters.insert("recvWindow".into(), recv_window.to_string());
     }
-    if let Ok(timestamp) = get_timestamp(start) {
-        parameters.insert("timestamp".into(), timestamp.to_string());
-        return Ok(build_request(parameters));
-    }
+    let timestamp = get_timestamp(start)?;
 
-    Err(Error::FailedToGetTimestamp)
+    parameters.insert("timestamp".into(), timestamp.to_string());
+    Ok(build_request(parameters))
 }
 
 fn get_timestamp(start: SystemTime) -> Result<u64, Error> {
