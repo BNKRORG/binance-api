@@ -1,11 +1,15 @@
+use std::time::Duration;
+
 pub const SPOT_MAINNET: &str = "https://api.binance.com";
 pub const SPOT_TESTNET: &str = "https://testnet.binance.vision";
 const DEFAULT_RECV_WINDOW: u64 = 5000;
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone)]
 pub struct Config {
     pub rest_api_endpoint: String,
     pub recv_window: u64,
+    pub timeout: Duration,
 }
 
 impl Default for Config {
@@ -13,6 +17,7 @@ impl Default for Config {
         Self {
             rest_api_endpoint: SPOT_MAINNET.to_string(),
             recv_window: DEFAULT_RECV_WINDOW,
+            timeout: DEFAULT_TIMEOUT,
         }
     }
 }

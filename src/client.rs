@@ -34,7 +34,10 @@ impl fmt::Debug for BinanceClient {
 impl BinanceClient {
     pub fn new(auth: BinanceAuth, config: Config) -> Self {
         Self {
-            client: Client::builder().pool_idle_timeout(None).build().unwrap(),
+            client: Client::builder()
+                .timeout(config.timeout)
+                .build()
+                .expect("Failed to create reqwest client"),
             host: config.rest_api_endpoint,
             auth,
             recv_window: config.recv_window,
