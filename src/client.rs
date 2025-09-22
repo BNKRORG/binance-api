@@ -44,113 +44,6 @@ impl BinanceClient {
         }
     }
 
-    pub fn set_host(&mut self, host: String) {
-        self.host = host;
-    }
-
-    async fn get_signed<T>(&self, endpoint: BinanceApi, request: Option<String>) -> Result<T>
-    where
-        T: DeserializeOwned,
-    {
-        let url = self.sign_request(endpoint, request)?;
-        let headers = self.build_headers(true)?;
-        let client = &self.client;
-        let response = client.get(url.as_str()).headers(headers).send().await?;
-
-        self.handler(response).await
-    }
-
-    // async fn post_signed<T: DeserializeOwned>(
-    //     &self,
-    //     endpoint: BinanceApi,
-    //     request: String,
-    // ) -> Result<T> {
-    //     let url = self.sign_request(endpoint, Some(request));
-    //     let client = &self.client;
-    //
-    //     let headers = self.build_headers(true)?;
-    //     let response = client.post(url.as_str()).headers(headers).send().await?;
-    //
-    //     self.handler(response).await
-    // }
-
-    // async fn delete_signed<T: DeserializeOwned>(
-    //     &self,
-    //     endpoint: BinanceApi,
-    //     request: Option<String>,
-    // ) -> Result<T> {
-    //     let url = self.sign_request(endpoint, request);
-    //     let headers = self.build_headers(true)?;
-    //     let client = &self.client;
-    //     let response = client.delete(url.as_str()).headers(headers).send().await?;
-    //
-    //     self.handler(response).await
-    // }
-    //
-    // async fn get<T: DeserializeOwned>(
-    //     &self,
-    //     endpoint: BinanceApi,
-    //     request: Option<String>,
-    // ) -> Result<T> {
-    //     let mut url: String = format!("{}{}", self.host, String::from(endpoint));
-    //     if let Some(request) = request {
-    //         if !request.is_empty() {
-    //             url.push_str(format!("?{}", request).as_str());
-    //         }
-    //     }
-    //
-    //     let client = &self.client;
-    //     let response = client.get(url.as_str()).send().await?;
-    //
-    //     self.handler(response).await
-    // }
-    //
-    // async fn post<T: DeserializeOwned>(&self, endpoint: BinanceApi) -> Result<T> {
-    //     let url: String = format!("{}{}", self.host, String::from(endpoint));
-    //
-    //     let client = &self.client;
-    //     let response = client
-    //         .post(url.as_str())
-    //         .headers(self.build_headers(false)?)
-    //         .send()
-    //         .await?;
-    //
-    //     self.handler(response).await
-    // }
-    //
-    // async fn put<T: DeserializeOwned>(&self, endpoint: BinanceApi, listen_key: &str) -> Result<T> {
-    //     let url: String = format!("{}{}", self.host, String::from(endpoint));
-    //     let data: String = format!("listenKey={}", listen_key);
-    //
-    //     let client = &self.client;
-    //
-    //     let headers = self.build_headers(true)?;
-    //     let response = client
-    //         .put(url.as_str())
-    //         .headers(headers)
-    //         .body(data)
-    //         .send()
-    //         .await?;
-    //
-    //     self.handler(response).await
-    // }
-    //
-    // async fn delete<T: DeserializeOwned>(&self, endpoint: BinanceApi, listen_key: &str) -> Result<T> {
-    //     let url: String = format!("{}{}", self.host, String::from(endpoint));
-    //     let data: String = format!("listenKey={}", listen_key);
-    //
-    //     let client = &self.client;
-    //     let response = client
-    //         .delete(url.as_str())
-    //         .headers(self.build_headers(false)?)
-    //         .body(data)
-    //         .send()
-    //         .await?;
-    //
-    //     self.handler(response).await
-    // }
-
-    // Request must be signed
     fn sign_request(&self, endpoint: BinanceApi, request: Option<String>) -> Result<String, Error> {
         let secret_key: &str = self.auth.get_api_secret_key()?;
 
@@ -175,7 +68,7 @@ impl BinanceClient {
 
         let mut custom_headers = HeaderMap::new();
 
-        custom_headers.insert(USER_AGENT, HeaderValue::from_static("binance-rs"));
+        custom_headers.insert(USER_AGENT, HeaderValue::from_static("binance-api"));
         if content_type {
             custom_headers.insert(
                 CONTENT_TYPE,
@@ -190,7 +83,7 @@ impl BinanceClient {
         Ok(custom_headers)
     }
 
-    async fn handler<T>(&self, response: Response) -> Result<T>
+    async fn handle_http_response<T>(&self, response: Response) -> Result<T>
     where
         T: DeserializeOwned,
     {
@@ -198,9 +91,28 @@ impl BinanceClient {
         Ok(response.json().await?)
     }
 
+    async fn get_signed<T>(&self, endpoint: BinanceApi, request: Option<String>) -> Result<T>
+    where
+        T: DeserializeOwned,
+    {
+        let url = self.sign_request(endpoint, request)?;
+        let headers = self.build_headers(true)?;
+        let response = self
+            .client
+            .get(url.as_str())
+            .headers(headers)
+            .send()
+            .await?;
+
+        self.handle_http_response(response).await
+    }
+
     // Account Information
     pub async fn get_account(&self) -> Result<AccountInformation> {
-        let request = build_signed_request(BTreeMap::new(), self.recv_window)?;
+        // Build signed request
+        let request: String = build_signed_request(BTreeMap::new(), self.recv_window)?;
+
+        // Get signed request
         self.get_signed(BinanceApi::Spot(Spot::Account), Some(request))
             .await
     }
@@ -208,20 +120,19 @@ impl BinanceClient {
     // Balance for a single Asset
     pub async fn get_balance<S>(&self, asset: S) -> Result<Balance>
     where
-        S: Into<String>,
+        S: AsRef<str>,
     {
-        match self.get_account().await {
-            Ok(account) => {
-                let cmp_asset = asset.into();
-                for balance in account.balances {
-                    if balance.asset == cmp_asset {
-                        return Ok(balance);
-                    }
-                }
+        let asset: &str = asset.as_ref();
 
-                Err(Error::AssetNotFound)
+        let account: AccountInformation = self.get_account().await?;
+
+        // Find the balance for the given asset
+        for balance in account.balances.into_iter() {
+            if balance.asset == asset {
+                return Ok(balance);
             }
-            Err(e) => Err(e),
         }
+
+        Err(Error::AssetNotFound)
     }
 }
