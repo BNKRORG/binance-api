@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use hex::encode as hex_encode;
 use hmac::{Hmac, Mac};
 use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, USER_AGENT};
 use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
 use sha2::Sha256;
 
-use crate::api::{API, Spot};
+use crate::api::{BinanceApi, Spot};
+use crate::auth::BinanceAuth;
 use crate::config::Config;
 use crate::error::{Error, Result};
 use crate::model::{AccountInformation, Balance};
@@ -17,10 +17,9 @@ use crate::util::build_signed_request;
 /// Binance Client
 #[derive(Clone)]
 pub struct BinanceClient {
-    api_key: String,
-    secret_key: String,
+    client: Client,
     host: String,
-    inner_client: Client,
+    auth: BinanceAuth,
     recv_window: u64,
 }
 
@@ -33,12 +32,11 @@ impl fmt::Debug for BinanceClient {
 }
 
 impl BinanceClient {
-    pub fn new(api_key: Option<String>, secret_key: Option<String>, config: Config) -> Self {
+    pub fn new(auth: BinanceAuth, config: Config) -> Self {
         Self {
-            api_key: api_key.unwrap_or_default(),
-            secret_key: secret_key.unwrap_or_default(),
+            client: Client::builder().pool_idle_timeout(None).build().unwrap(),
             host: config.rest_api_endpoint,
-            inner_client: Client::builder().pool_idle_timeout(None).build().unwrap(),
+            auth,
             recv_window: config.recv_window,
         }
     }
@@ -47,13 +45,13 @@ impl BinanceClient {
         self.host = host;
     }
 
-    async fn get_signed<T>(&self, endpoint: API, request: Option<String>) -> Result<T>
+    async fn get_signed<T>(&self, endpoint: BinanceApi, request: Option<String>) -> Result<T>
     where
         T: DeserializeOwned,
     {
-        let url = self.sign_request(endpoint, request);
+        let url = self.sign_request(endpoint, request)?;
         let headers = self.build_headers(true)?;
-        let client = &self.inner_client;
+        let client = &self.client;
         let response = client.get(url.as_str()).headers(headers).send().await?;
 
         self.handler(response).await
@@ -61,11 +59,11 @@ impl BinanceClient {
 
     // async fn post_signed<T: DeserializeOwned>(
     //     &self,
-    //     endpoint: API,
+    //     endpoint: BinanceApi,
     //     request: String,
     // ) -> Result<T> {
     //     let url = self.sign_request(endpoint, Some(request));
-    //     let client = &self.inner_client;
+    //     let client = &self.client;
     //
     //     let headers = self.build_headers(true)?;
     //     let response = client.post(url.as_str()).headers(headers).send().await?;
@@ -75,12 +73,12 @@ impl BinanceClient {
 
     // async fn delete_signed<T: DeserializeOwned>(
     //     &self,
-    //     endpoint: API,
+    //     endpoint: BinanceApi,
     //     request: Option<String>,
     // ) -> Result<T> {
     //     let url = self.sign_request(endpoint, request);
     //     let headers = self.build_headers(true)?;
-    //     let client = &self.inner_client;
+    //     let client = &self.client;
     //     let response = client.delete(url.as_str()).headers(headers).send().await?;
     //
     //     self.handler(response).await
@@ -88,7 +86,7 @@ impl BinanceClient {
     //
     // async fn get<T: DeserializeOwned>(
     //     &self,
-    //     endpoint: API,
+    //     endpoint: BinanceApi,
     //     request: Option<String>,
     // ) -> Result<T> {
     //     let mut url: String = format!("{}{}", self.host, String::from(endpoint));
@@ -98,16 +96,16 @@ impl BinanceClient {
     //         }
     //     }
     //
-    //     let client = &self.inner_client;
+    //     let client = &self.client;
     //     let response = client.get(url.as_str()).send().await?;
     //
     //     self.handler(response).await
     // }
     //
-    // async fn post<T: DeserializeOwned>(&self, endpoint: API) -> Result<T> {
+    // async fn post<T: DeserializeOwned>(&self, endpoint: BinanceApi) -> Result<T> {
     //     let url: String = format!("{}{}", self.host, String::from(endpoint));
     //
-    //     let client = &self.inner_client;
+    //     let client = &self.client;
     //     let response = client
     //         .post(url.as_str())
     //         .headers(self.build_headers(false)?)
@@ -117,11 +115,11 @@ impl BinanceClient {
     //     self.handler(response).await
     // }
     //
-    // async fn put<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
+    // async fn put<T: DeserializeOwned>(&self, endpoint: BinanceApi, listen_key: &str) -> Result<T> {
     //     let url: String = format!("{}{}", self.host, String::from(endpoint));
     //     let data: String = format!("listenKey={}", listen_key);
     //
-    //     let client = &self.inner_client;
+    //     let client = &self.client;
     //
     //     let headers = self.build_headers(true)?;
     //     let response = client
@@ -134,11 +132,11 @@ impl BinanceClient {
     //     self.handler(response).await
     // }
     //
-    // async fn delete<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
+    // async fn delete<T: DeserializeOwned>(&self, endpoint: BinanceApi, listen_key: &str) -> Result<T> {
     //     let url: String = format!("{}{}", self.host, String::from(endpoint));
     //     let data: String = format!("listenKey={}", listen_key);
     //
-    //     let client = &self.inner_client;
+    //     let client = &self.client;
     //     let response = client
     //         .delete(url.as_str())
     //         .headers(self.build_headers(false)?)
@@ -150,23 +148,28 @@ impl BinanceClient {
     // }
 
     // Request must be signed
-    fn sign_request(&self, endpoint: API, request: Option<String>) -> String {
-        if let Some(request) = request {
-            let mut signed_key =
-                Hmac::<Sha256>::new_from_slice(self.secret_key.as_bytes()).unwrap();
+    fn sign_request(&self, endpoint: BinanceApi, request: Option<String>) -> Result<String, Error> {
+        let secret_key: &str = self.auth.get_api_secret_key()?;
+
+        let mut signed_key = Hmac::<Sha256>::new_from_slice(secret_key.as_bytes()).unwrap();
+
+        if let Some(request) = &request {
             signed_key.update(request.as_bytes());
-            let signature = hex_encode(signed_key.finalize().into_bytes());
-            let request_body: String = format!("{}&signature={}", request, signature);
-            format!("{}{}?{}", self.host, String::from(endpoint), request_body)
-        } else {
-            let signed_key = Hmac::<Sha256>::new_from_slice(self.secret_key.as_bytes()).unwrap();
-            let signature = hex_encode(signed_key.finalize().into_bytes());
-            let request_body: String = format!("&signature={}", signature);
-            format!("{}{}?{}", self.host, String::from(endpoint), request_body)
         }
+
+        let signature = hex::encode(signed_key.finalize().into_bytes());
+
+        let request_body: String = match request {
+            Some(request) => format!("{request}&signature={signature}"),
+            None => format!("signature={signature}"),
+        };
+
+        Ok(format!("{}{endpoint}?{request_body}", self.host))
     }
 
     fn build_headers(&self, content_type: bool) -> Result<HeaderMap> {
+        let api_key: &str = self.auth.get_api_key()?;
+
         let mut custom_headers = HeaderMap::new();
 
         custom_headers.insert(USER_AGENT, HeaderValue::from_static("binance-rs"));
@@ -178,7 +181,7 @@ impl BinanceClient {
         }
         custom_headers.insert(
             HeaderName::from_static("x-mbx-apikey"),
-            HeaderValue::from_str(self.api_key.as_str())?,
+            HeaderValue::from_str(api_key)?,
         );
 
         Ok(custom_headers)
@@ -195,7 +198,7 @@ impl BinanceClient {
     // Account Information
     pub async fn get_account(&self) -> Result<AccountInformation> {
         let request = build_signed_request(BTreeMap::new(), self.recv_window)?;
-        self.get_signed(API::Spot(Spot::Account), Some(request))
+        self.get_signed(BinanceApi::Spot(Spot::Account), Some(request))
             .await
     }
 

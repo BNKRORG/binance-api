@@ -1,65 +1,79 @@
+use std::fmt;
+
 /// Binance APIs
-pub enum API {
+pub(super) enum BinanceApi {
     Spot(Spot),
+}
+
+impl fmt::Display for BinanceApi {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl BinanceApi {
+    pub(super) fn as_str(&self) -> &str {
+        match self {
+            Self::Spot(spot) => spot.as_str(),
+        }
+    }
 }
 
 /// Endpoint for production and test orders.
 ///
 /// Orders issued to test are validated, but not sent into the matching engine.
-pub enum Spot {
-    Ping,
-    Time,
-    ExchangeInfo,
-    Depth,
-    Trades,
-    HistoricalTrades,
-    AggTrades,
-    Klines,
-    AvgPrice,
-    Ticker24hr,
-    Price,
-    BookTicker,
-    Order,
-    OrderTest,
-    OpenOrders,
-    AllOrders,
-    Oco,
-    OrderList,
-    AllOrderList,
-    OpenOrderList,
+pub(super) enum Spot {
+    // Ping,
+    // Time,
+    // ExchangeInfo,
+    // Depth,
+    // Trades,
+    // HistoricalTrades,
+    // AggTrades,
+    // Klines,
+    // AvgPrice,
+    // Ticker24hr,
+    // Price,
+    // BookTicker,
+    // Order,
+    // OrderTest,
+    // OpenOrders,
+    // AllOrders,
+    // Oco,
+    // OrderList,
+    // AllOrderList,
+    // OpenOrderList,
     Account,
-    MyTrades,
-    UserDataStream,
+    // MyTrades,
+    // UserDataStream,
 }
 
-impl From<API> for String {
-    fn from(item: API) -> Self {
-        String::from(match item {
-            API::Spot(route) => match route {
-                Spot::Ping => "/api/v3/ping",
-                Spot::Time => "/api/v3/time",
-                Spot::ExchangeInfo => "/api/v3/exchangeInfo",
-                Spot::Depth => "/api/v3/depth",
-                Spot::Trades => "/api/v3/trades",
-                Spot::HistoricalTrades => "/api/v3/historicalTrades",
-                Spot::AggTrades => "/api/v3/aggTrades",
-                Spot::Klines => "/api/v3/klines",
-                Spot::AvgPrice => "/api/v3/avgPrice",
-                Spot::Ticker24hr => "/api/v3/ticker/24hr",
-                Spot::Price => "/api/v3/ticker/price",
-                Spot::BookTicker => "/api/v3/ticker/bookTicker",
-                Spot::Order => "/api/v3/order",
-                Spot::OrderTest => "/api/v3/order/test",
-                Spot::OpenOrders => "/api/v3/openOrders",
-                Spot::AllOrders => "/api/v3/allOrders",
-                Spot::Oco => "/api/v3/order/oco",
-                Spot::OrderList => "/api/v3/orderList",
-                Spot::AllOrderList => "/api/v3/allOrderList",
-                Spot::OpenOrderList => "/api/v3/openOrderList",
-                Spot::Account => "/api/v3/account",
-                Spot::MyTrades => "/api/v3/myTrades",
-                Spot::UserDataStream => "/api/v3/userDataStream",
-            },
-        })
+impl Spot {
+    pub(super) fn as_str(&self) -> &str {
+        match self {
+            // Self::Ping => "/api/v3/ping",
+            // Self::Time => "/api/v3/time",
+            // Self::ExchangeInfo => "/api/v3/exchangeInfo",
+            // Self::Depth => "/api/v3/depth",
+            // Self::Trades => "/api/v3/trades",
+            // Self::HistoricalTrades => "/api/v3/historicalTrades",
+            // Self::AggTrades => "/api/v3/aggTrades",
+            // Self::Klines => "/api/v3/klines",
+            // Self::AvgPrice => "/api/v3/avgPrice",
+            // Self::Ticker24hr => "/api/v3/ticker/24hr",
+            // Self::Price => "/api/v3/ticker/price",
+            // Self::BookTicker => "/api/v3/ticker/bookTicker",
+            // Self::Order => "/api/v3/order",
+            // Self::OrderTest => "/api/v3/order/test",
+            // Self::OpenOrders => "/api/v3/openOrders",
+            // Self::AllOrders => "/api/v3/allOrders",
+            // Self::Oco => "/api/v3/order/oco",
+            // Self::OrderList => "/api/v3/orderList",
+            // Self::AllOrderList => "/api/v3/allOrderList",
+            // Self::OpenOrderList => "/api/v3/openOrderList",
+            Self::Account => "/api/v3/account",
+            // Self::MyTrades => "/api/v3/myTrades",
+            // Self::UserDataStream => "/api/v3/userDataStream",
+        }
     }
 }
