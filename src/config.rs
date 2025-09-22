@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use url::Url;
+
 pub const SPOT_MAINNET: &str = "https://api.binance.com";
 pub const SPOT_TESTNET: &str = "https://testnet.binance.vision";
 const DEFAULT_RECV_WINDOW: u64 = 5000;
@@ -7,7 +9,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub rest_api_endpoint: String,
+    pub rest_api_endpoint: Url,
     pub recv_window: u64,
     pub timeout: Duration,
 }
@@ -15,7 +17,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            rest_api_endpoint: SPOT_MAINNET.to_string(),
+            rest_api_endpoint: Url::parse(SPOT_MAINNET).expect("Invalid rest API endpoint"),
             recv_window: DEFAULT_RECV_WINDOW,
             timeout: DEFAULT_TIMEOUT,
         }
@@ -25,15 +27,13 @@ impl Default for Config {
 impl Config {
     #[inline]
     pub fn testnet() -> Self {
-        Self::default().set_rest_api_endpoint(SPOT_TESTNET)
+        let endpoint: Url = Url::parse(SPOT_TESTNET).expect("Invalid rest API endpoint");
+        Self::default().set_rest_api_endpoint(endpoint)
     }
 
     #[inline]
-    pub fn set_rest_api_endpoint<T>(mut self, rest_api_endpoint: T) -> Self
-    where
-        T: Into<String>,
-    {
-        self.rest_api_endpoint = rest_api_endpoint.into();
+    pub fn set_rest_api_endpoint(mut self, rest_api_endpoint: Url) -> Self {
+        self.rest_api_endpoint = rest_api_endpoint;
         self
     }
 

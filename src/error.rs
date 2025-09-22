@@ -1,13 +1,7 @@
-use serde::Deserialize;
 use thiserror::Error;
+use url::ParseError;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
-
-#[derive(Debug, Deserialize)]
-pub struct BinanceContentError {
-    pub code: i16,
-    pub msg: String,
-}
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -15,6 +9,8 @@ pub enum Error {
     Reqwest(#[from] reqwest::Error),
     #[error(transparent)]
     InvalidHeader(#[from] reqwest::header::InvalidHeaderValue),
+    #[error(transparent)]
+    Url(#[from] ParseError),
     #[error(transparent)]
     Timestamp(#[from] std::time::SystemTimeError),
     #[error("Asset not found")]

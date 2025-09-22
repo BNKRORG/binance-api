@@ -1,14 +1,5 @@
-use std::fmt;
-
-/// Binance APIs
 pub(super) enum BinanceApi {
     Spot(Spot),
-}
-
-impl fmt::Display for BinanceApi {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_str())
-    }
 }
 
 impl BinanceApi {
@@ -19,9 +10,6 @@ impl BinanceApi {
     }
 }
 
-/// Endpoint for production and test orders.
-///
-/// Orders issued to test are validated, but not sent into the matching engine.
 pub(super) enum Spot {
     // Ping,
     // Time,

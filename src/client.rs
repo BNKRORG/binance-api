@@ -6,6 +6,7 @@ use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, USER_AGE
 use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
 use sha2::Sha256;
+use url::Url;
 
 use crate::api::{BinanceApi, Spot};
 use crate::auth::BinanceAuth;
@@ -18,7 +19,7 @@ use crate::util::build_signed_request;
 #[derive(Clone)]
 pub struct BinanceClient {
     client: Client,
-    host: String,
+    host: Url,
     auth: BinanceAuth,
     recv_window: u64,
 }
@@ -44,7 +45,7 @@ impl BinanceClient {
         }
     }
 
-    fn sign_request(&self, endpoint: BinanceApi, request: Option<String>) -> Result<String, Error> {
+    fn sign_request(&self, endpoint: BinanceApi, request: Option<String>) -> Result<Url, Error> {
         let secret_key: &str = self.auth.get_api_secret_key()?;
 
         let mut signed_key = Hmac::<Sha256>::new_from_slice(secret_key.as_bytes()).unwrap();
@@ -60,7 +61,13 @@ impl BinanceClient {
             None => format!("signature={signature}"),
         };
 
-        Ok(format!("{}{endpoint}?{request_body}", self.host))
+        // Build URL endpoint
+        let mut url: Url = self.host.join(endpoint.as_str())?;
+
+        // Add query parameters
+        url.set_query(Some(&request_body));
+
+        Ok(url)
     }
 
     fn build_headers(&self, content_type: bool) -> Result<HeaderMap> {
@@ -97,12 +104,7 @@ impl BinanceClient {
     {
         let url = self.sign_request(endpoint, request)?;
         let headers = self.build_headers(true)?;
-        let response = self
-            .client
-            .get(url.as_str())
-            .headers(headers)
-            .send()
-            .await?;
+        let response = self.client.get(url).headers(headers).send().await?;
 
         self.handle_http_response(response).await
     }
