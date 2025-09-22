@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fmt;
 
 use hex::encode as hex_encode;
@@ -7,15 +8,20 @@ use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
 use sha2::Sha256;
 
-use crate::api::API;
-use crate::error::Result;
+use crate::api::{API, Spot};
+use crate::config::Config;
+use crate::error::{Error, Result};
+use crate::model::{AccountInformation, Balance};
+use crate::util::build_signed_request;
 
+/// Binance Client
 #[derive(Clone)]
 pub struct BinanceClient {
     api_key: String,
     secret_key: String,
     host: String,
     inner_client: Client,
+    recv_window: u64,
 }
 
 impl fmt::Debug for BinanceClient {
@@ -27,12 +33,13 @@ impl fmt::Debug for BinanceClient {
 }
 
 impl BinanceClient {
-    pub fn new(api_key: Option<String>, secret_key: Option<String>, host: String) -> Self {
+    pub fn new(api_key: Option<String>, secret_key: Option<String>, config: Config) -> Self {
         Self {
             api_key: api_key.unwrap_or_default(),
             secret_key: secret_key.unwrap_or_default(),
-            host,
+            host: config.rest_api_endpoint,
             inner_client: Client::builder().pool_idle_timeout(None).build().unwrap(),
+            recv_window: config.recv_window,
         }
     }
 
@@ -40,7 +47,7 @@ impl BinanceClient {
         self.host = host;
     }
 
-    pub async fn get_signed<T>(&self, endpoint: API, request: Option<String>) -> Result<T>
+    async fn get_signed<T>(&self, endpoint: API, request: Option<String>) -> Result<T>
     where
         T: DeserializeOwned,
     {
@@ -52,95 +59,95 @@ impl BinanceClient {
         self.handler(response).await
     }
 
-    pub async fn post_signed<T: DeserializeOwned>(
-        &self,
-        endpoint: API,
-        request: String,
-    ) -> Result<T> {
-        let url = self.sign_request(endpoint, Some(request));
-        let client = &self.inner_client;
+    // async fn post_signed<T: DeserializeOwned>(
+    //     &self,
+    //     endpoint: API,
+    //     request: String,
+    // ) -> Result<T> {
+    //     let url = self.sign_request(endpoint, Some(request));
+    //     let client = &self.inner_client;
+    //
+    //     let headers = self.build_headers(true)?;
+    //     let response = client.post(url.as_str()).headers(headers).send().await?;
+    //
+    //     self.handler(response).await
+    // }
 
-        let headers = self.build_headers(true)?;
-        let response = client.post(url.as_str()).headers(headers).send().await?;
-
-        self.handler(response).await
-    }
-
-    pub async fn delete_signed<T: DeserializeOwned>(
-        &self,
-        endpoint: API,
-        request: Option<String>,
-    ) -> Result<T> {
-        let url = self.sign_request(endpoint, request);
-        let headers = self.build_headers(true)?;
-        let client = &self.inner_client;
-        let response = client.delete(url.as_str()).headers(headers).send().await?;
-
-        self.handler(response).await
-    }
-
-    pub async fn get<T: DeserializeOwned>(
-        &self,
-        endpoint: API,
-        request: Option<String>,
-    ) -> Result<T> {
-        let mut url: String = format!("{}{}", self.host, String::from(endpoint));
-        if let Some(request) = request {
-            if !request.is_empty() {
-                url.push_str(format!("?{}", request).as_str());
-            }
-        }
-
-        let client = &self.inner_client;
-        let response = client.get(url.as_str()).send().await?;
-
-        self.handler(response).await
-    }
-
-    pub async fn post<T: DeserializeOwned>(&self, endpoint: API) -> Result<T> {
-        let url: String = format!("{}{}", self.host, String::from(endpoint));
-
-        let client = &self.inner_client;
-        let response = client
-            .post(url.as_str())
-            .headers(self.build_headers(false)?)
-            .send()
-            .await?;
-
-        self.handler(response).await
-    }
-
-    pub async fn put<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
-        let url: String = format!("{}{}", self.host, String::from(endpoint));
-        let data: String = format!("listenKey={}", listen_key);
-
-        let client = &self.inner_client;
-
-        let headers = self.build_headers(true)?;
-        let response = client
-            .put(url.as_str())
-            .headers(headers)
-            .body(data)
-            .send()
-            .await?;
-
-        self.handler(response).await
-    }
-
-    pub async fn delete<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
-        let url: String = format!("{}{}", self.host, String::from(endpoint));
-        let data: String = format!("listenKey={}", listen_key);
-
-        let client = &self.inner_client;
-        let response = client
-            .delete(url.as_str())
-            .headers(self.build_headers(false)?)
-            .body(data)
-            .send()
-            .await?;
-
-        self.handler(response).await
-    }
+    // async fn delete_signed<T: DeserializeOwned>(
+    //     &self,
+    //     endpoint: API,
+    //     request: Option<String>,
+    // ) -> Result<T> {
+    //     let url = self.sign_request(endpoint, request);
+    //     let headers = self.build_headers(true)?;
+    //     let client = &self.inner_client;
+    //     let response = client.delete(url.as_str()).headers(headers).send().await?;
+    //
+    //     self.handler(response).await
+    // }
+    //
+    // async fn get<T: DeserializeOwned>(
+    //     &self,
+    //     endpoint: API,
+    //     request: Option<String>,
+    // ) -> Result<T> {
+    //     let mut url: String = format!("{}{}", self.host, String::from(endpoint));
+    //     if let Some(request) = request {
+    //         if !request.is_empty() {
+    //             url.push_str(format!("?{}", request).as_str());
+    //         }
+    //     }
+    //
+    //     let client = &self.inner_client;
+    //     let response = client.get(url.as_str()).send().await?;
+    //
+    //     self.handler(response).await
+    // }
+    //
+    // async fn post<T: DeserializeOwned>(&self, endpoint: API) -> Result<T> {
+    //     let url: String = format!("{}{}", self.host, String::from(endpoint));
+    //
+    //     let client = &self.inner_client;
+    //     let response = client
+    //         .post(url.as_str())
+    //         .headers(self.build_headers(false)?)
+    //         .send()
+    //         .await?;
+    //
+    //     self.handler(response).await
+    // }
+    //
+    // async fn put<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
+    //     let url: String = format!("{}{}", self.host, String::from(endpoint));
+    //     let data: String = format!("listenKey={}", listen_key);
+    //
+    //     let client = &self.inner_client;
+    //
+    //     let headers = self.build_headers(true)?;
+    //     let response = client
+    //         .put(url.as_str())
+    //         .headers(headers)
+    //         .body(data)
+    //         .send()
+    //         .await?;
+    //
+    //     self.handler(response).await
+    // }
+    //
+    // async fn delete<T: DeserializeOwned>(&self, endpoint: API, listen_key: &str) -> Result<T> {
+    //     let url: String = format!("{}{}", self.host, String::from(endpoint));
+    //     let data: String = format!("listenKey={}", listen_key);
+    //
+    //     let client = &self.inner_client;
+    //     let response = client
+    //         .delete(url.as_str())
+    //         .headers(self.build_headers(false)?)
+    //         .body(data)
+    //         .send()
+    //         .await?;
+    //
+    //     self.handler(response).await
+    // }
 
     // Request must be signed
     fn sign_request(&self, endpoint: API, request: Option<String>) -> String {
@@ -183,5 +190,32 @@ impl BinanceClient {
     {
         let response: Response = response.error_for_status()?;
         Ok(response.json().await?)
+    }
+
+    // Account Information
+    pub async fn get_account(&self) -> Result<AccountInformation> {
+        let request = build_signed_request(BTreeMap::new(), self.recv_window)?;
+        self.get_signed(API::Spot(Spot::Account), Some(request))
+            .await
+    }
+
+    // Balance for a single Asset
+    pub async fn get_balance<S>(&self, asset: S) -> Result<Balance>
+    where
+        S: Into<String>,
+    {
+        match self.get_account().await {
+            Ok(account) => {
+                let cmp_asset = asset.into();
+                for balance in account.balances {
+                    if balance.asset == cmp_asset {
+                        return Ok(balance);
+                    }
+                }
+
+                Err(Error::AssetNotFound)
+            }
+            Err(e) => Err(e),
+        }
     }
 }
