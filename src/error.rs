@@ -1,8 +1,6 @@
 use thiserror::Error;
 use url::ParseError;
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
-
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]

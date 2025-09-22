@@ -11,7 +11,7 @@ use url::Url;
 use crate::api::{BinanceApi, Spot};
 use crate::auth::BinanceAuth;
 use crate::config::BinanceConfig;
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::model::{AccountInformation, Balance};
 use crate::util::build_signed_request;
 
@@ -70,7 +70,7 @@ impl BinanceClient {
         Ok(url)
     }
 
-    fn build_headers(&self, content_type: bool) -> Result<HeaderMap> {
+    fn build_headers(&self, content_type: bool) -> Result<HeaderMap, Error> {
         let api_key: &str = self.auth.get_api_key()?;
 
         let mut custom_headers = HeaderMap::new();
@@ -90,7 +90,7 @@ impl BinanceClient {
         Ok(custom_headers)
     }
 
-    async fn handle_http_response<T>(&self, response: Response) -> Result<T>
+    async fn handle_http_response<T>(&self, response: Response) -> Result<T, Error>
     where
         T: DeserializeOwned,
     {
@@ -98,7 +98,7 @@ impl BinanceClient {
         Ok(response.json().await?)
     }
 
-    async fn get_signed<T>(&self, endpoint: BinanceApi, request: Option<String>) -> Result<T>
+    async fn get_signed<T>(&self, endpoint: BinanceApi, request: Option<String>) -> Result<T, Error>
     where
         T: DeserializeOwned,
     {
@@ -110,7 +110,7 @@ impl BinanceClient {
     }
 
     // Account Information
-    pub async fn get_account(&self) -> Result<AccountInformation> {
+    pub async fn get_account(&self) -> Result<AccountInformation, Error> {
         // Build signed request
         let request: String = build_signed_request(BTreeMap::new(), self.recv_window)?;
 
@@ -120,7 +120,7 @@ impl BinanceClient {
     }
 
     // Balance for a single Asset
-    pub async fn get_balance<S>(&self, asset: S) -> Result<Balance>
+    pub async fn get_balance<S>(&self, asset: S) -> Result<Balance, Error>
     where
         S: AsRef<str>,
     {
