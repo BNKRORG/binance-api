@@ -15,7 +15,4 @@ test:
     cargo test --all
     cargo test --all-features
 
-doc open="":
-    cargo doc -p bnkr-sdk {{open}}
-
 precommit: fmt check clippy test
