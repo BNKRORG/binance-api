@@ -10,7 +10,7 @@ use url::Url;
 
 use crate::api::{BinanceApi, Spot};
 use crate::auth::BinanceAuth;
-use crate::config::Config;
+use crate::config::BinanceConfig;
 use crate::error::{Error, Result};
 use crate::model::{AccountInformation, Balance};
 use crate::util::build_signed_request;
@@ -33,7 +33,7 @@ impl fmt::Debug for BinanceClient {
 }
 
 impl BinanceClient {
-    pub fn new(auth: BinanceAuth, config: Config) -> Self {
+    pub fn new(auth: BinanceAuth, config: BinanceConfig) -> Self {
         Self {
             client: Client::builder()
                 .timeout(config.timeout)

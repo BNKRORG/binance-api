@@ -8,13 +8,13 @@ const DEFAULT_RECV_WINDOW: u64 = 5000;
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone)]
-pub struct Config {
+pub struct BinanceConfig {
     pub rest_api_endpoint: Url,
     pub recv_window: u64,
     pub timeout: Duration,
 }
 
-impl Default for Config {
+impl Default for BinanceConfig {
     fn default() -> Self {
         Self {
             rest_api_endpoint: Url::parse(SPOT_MAINNET).expect("Invalid rest API endpoint"),
@@ -24,7 +24,7 @@ impl Default for Config {
     }
 }
 
-impl Config {
+impl BinanceConfig {
     #[inline]
     pub fn testnet() -> Self {
         let endpoint: Url = Url::parse(SPOT_TESTNET).expect("Invalid rest API endpoint");
