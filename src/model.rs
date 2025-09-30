@@ -25,17 +25,25 @@ pub struct AccountInformation {
 }
 
 /// Balance
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Balance {
     /// Asset
     pub asset: String,
     /// Free balance
-    // TODO: use f64?
-    pub free: String,
+    #[serde(deserialize_with = "deserialize_string_to_f64")]
+    pub free: f64,
     /// Locked balance
-    // TODO: use f64?
-    pub locked: String,
+    #[serde(deserialize_with = "deserialize_string_to_f64")]
+    pub locked: f64,
+}
+
+fn deserialize_string_to_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s: String = String::deserialize(deserializer)?;
+    s.parse().map_err(serde::de::Error::custom)
 }
 
 #[cfg(test)]
@@ -84,13 +92,13 @@ mod tests {
             vec![
                 Balance {
                     asset: "BTC".to_string(),
-                    free: "4723846.89208129".to_string(),
-                    locked: "0.00000000".to_string(),
+                    free: 4723846.89208129,
+                    locked: 0.0,
                 },
                 Balance {
                     asset: "LTC".to_string(),
-                    free: "4763368.68006011".to_string(),
-                    locked: "0.00000000".to_string(),
+                    free: 4763368.68006011,
+                    locked: 0.0,
                 }
             ]
         );
