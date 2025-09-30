@@ -37,3 +37,62 @@ pub struct Balance {
     // TODO: use f64?
     pub locked: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_account_information() {
+        let json = r#"{
+    "makerCommission": 15,
+    "takerCommission": 15,
+    "buyerCommission": 0,
+    "sellerCommission": 0,
+    "canTrade": true,
+    "canWithdraw": true,
+    "canDeposit": true,
+    "updateTime": 123456789,
+    "accountType": "SPOT",
+    "balances": [{
+            "asset": "BTC",
+            "free": "4723846.89208129",
+            "locked": "0.00000000"
+        },
+        {
+            "asset": "LTC",
+            "free": "4763368.68006011",
+            "locked": "0.00000000"
+        }
+    ],
+    "permissions": [
+        "SPOT"
+    ]
+}"#;
+
+        let account: AccountInformation = serde_json::from_str(json).unwrap();
+
+        assert_eq!(account.maker_commission, 15.0);
+        assert_eq!(account.taker_commission, 15.0);
+        assert_eq!(account.buyer_commission, 0.0);
+        assert_eq!(account.seller_commission, 0.0);
+        assert_eq!(account.can_trade, true);
+        assert_eq!(account.can_withdraw, true);
+        assert_eq!(account.can_deposit, true);
+        assert_eq!(
+            account.balances,
+            vec![
+                Balance {
+                    asset: "BTC".to_string(),
+                    free: "4723846.89208129".to_string(),
+                    locked: "0.00000000".to_string(),
+                },
+                Balance {
+                    asset: "LTC".to_string(),
+                    free: "4763368.68006011".to_string(),
+                    locked: "0.00000000".to_string(),
+                }
+            ]
+        );
+    }
+}
