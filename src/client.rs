@@ -14,7 +14,7 @@ use crate::api::{BinanceApi, Spot};
 use crate::auth::BinanceAuth;
 use crate::config::BinanceConfig;
 use crate::error::Error;
-use crate::model::{AccountInformation, Balance};
+use crate::response::{AccountInformation, Balance};
 use crate::util::build_signed_request;
 
 /// Binance client
