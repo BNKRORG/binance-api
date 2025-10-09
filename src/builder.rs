@@ -61,8 +61,15 @@ impl BinanceEndpoint {
     }
 
     /// Get URL endpoint
-    pub fn url(&self) -> &Url {
+    #[inline]
+    pub fn as_url(&self) -> &Url {
         &self.url
+    }
+
+    /// Get URL endpoint
+    #[inline]
+    pub fn into_url(self) -> Url {
+        self.url
     }
 }
 
