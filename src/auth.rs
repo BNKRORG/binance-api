@@ -5,9 +5,10 @@ use std::fmt;
 use crate::error::Error;
 
 /// Binance authentication
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum BinanceAuth {
     /// No authentication
+    #[default]
     None,
     /// API Keys
     ApiKeys {
