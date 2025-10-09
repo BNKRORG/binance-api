@@ -4,12 +4,7 @@ use std::time::Duration;
 
 use url::Url;
 
-/// SPOT API endpoint (mainnet)
-pub const SPOT_MAINNET: &str = "https://api.binance.com";
-/// SPOT API endpoint (mainnet)
-pub const SPOT_TESTNET: &str = "https://testnet.binance.vision";
-const DEFAULT_RECV_WINDOW: u64 = 5000;
-const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
+use crate::constant::{DEFAULT_RECV_WINDOW, DEFAULT_TIMEOUT, SPOT_MAINNET, SPOT_TESTNET};
 
 /// Binance endpoint
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
