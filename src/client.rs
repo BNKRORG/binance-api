@@ -42,7 +42,7 @@ impl BinanceClient {
                 .timeout(config.timeout)
                 .build()
                 .expect("Failed to create reqwest client"),
-            host: config.rest_api_endpoint,
+            host: config.endpoint.url(),
             auth,
             recv_window: config.recv_window,
         }
