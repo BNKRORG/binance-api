@@ -6,7 +6,9 @@ use url::Url;
 
 use crate::auth::BinanceAuth;
 use crate::client::BinanceClient;
-use crate::constant::{DEFAULT_RECV_WINDOW, DEFAULT_TIMEOUT, SPOT_MAINNET, SPOT_TESTNET};
+use crate::constant::{
+    DEFAULT_RECV_WINDOW, DEFAULT_TIMEOUT, SPOT_MAINNET, SPOT_MAINNET_US, SPOT_TESTNET,
+};
 use crate::error::Error;
 
 /// Binance endpoint
@@ -15,6 +17,8 @@ pub enum BinanceEndpoint {
     /// Mainnet (international)
     #[default]
     Mainnet,
+    /// Mainnet (US)
+    MainnetUs,
     /// Testnet (international)
     Testnet,
 }
@@ -23,6 +27,7 @@ impl BinanceEndpoint {
     pub(crate) fn url(&self) -> Url {
         match self {
             Self::Mainnet => Url::parse(SPOT_MAINNET).expect("Invalid rest API endpoint"),
+            Self::MainnetUs => Url::parse(SPOT_MAINNET_US).expect("Invalid rest API endpoint"),
             Self::Testnet => Url::parse(SPOT_TESTNET).expect("Invalid rest API endpoint"),
         }
     }
