@@ -12,7 +12,7 @@ use url::Url;
 
 use crate::api::{BinanceApi, Spot};
 use crate::auth::BinanceAuth;
-use crate::config::BinanceConfig;
+use crate::builder::BinanceClientBuilder;
 use crate::error::Error;
 use crate::response::{AccountInformation, Balance};
 use crate::util::build_signed_request;
@@ -35,17 +35,25 @@ impl fmt::Debug for BinanceClient {
 }
 
 impl BinanceClient {
-    /// Construct new binance client
-    pub fn new(auth: BinanceAuth, config: BinanceConfig) -> Self {
-        Self {
-            client: Client::builder()
-                .timeout(config.timeout)
-                .build()
-                .expect("Failed to create reqwest client"),
-            host: config.endpoint.url(),
-            auth,
-            recv_window: config.recv_window,
-        }
+    /// Construct a new client
+    pub fn new(auth: BinanceAuth) -> Result<Self, Error> {
+        Self::builder().auth(auth).build()
+    }
+
+    /// Get a new builder
+    #[inline]
+    pub fn builder() -> BinanceClientBuilder {
+        BinanceClientBuilder::default()
+    }
+
+    #[inline]
+    pub(super) fn from_builder(builder: BinanceClientBuilder) -> Result<Self, Error> {
+        Ok(Self {
+            client: Client::builder().timeout(builder.timeout).build()?,
+            host: builder.endpoint.url(),
+            auth: builder.auth,
+            recv_window: builder.recv_window,
+        })
     }
 
     fn sign_request(&self, endpoint: BinanceApi, request: Option<String>) -> Result<Url, Error> {

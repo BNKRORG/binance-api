@@ -7,8 +7,8 @@
 
 mod api;
 pub mod auth;
+pub mod builder;
 pub mod client;
-pub mod config;
 mod constant;
 pub mod error;
 pub mod response;
