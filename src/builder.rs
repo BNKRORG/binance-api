@@ -11,25 +11,58 @@ use crate::constant::{
 };
 use crate::error::Error;
 
-/// Binance endpoint
+/// Binance endpoint type
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum BinanceEndpoint {
+pub enum BinanceEndpointType {
     /// Mainnet (international)
     #[default]
     Mainnet,
     /// Mainnet (US)
     MainnetUs,
-    /// Testnet (international)
+    /// Testnet
     Testnet,
 }
 
+/// Binance endpoint
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct BinanceEndpoint {
+    url: Url,
+}
+
+impl Default for BinanceEndpoint {
+    fn default() -> Self {
+        Self::from_type(BinanceEndpointType::default())
+    }
+}
+
 impl BinanceEndpoint {
-    pub(crate) fn url(&self) -> Url {
-        match self {
-            Self::Mainnet => Url::parse(SPOT_MAINNET).expect("Invalid rest API endpoint"),
-            Self::MainnetUs => Url::parse(SPOT_MAINNET_US).expect("Invalid rest API endpoint"),
-            Self::Testnet => Url::parse(SPOT_TESTNET).expect("Invalid rest API endpoint"),
+    /// Construct a new endpoint
+    #[inline]
+    pub fn new(url: Url) -> Self {
+        Self { url }
+    }
+
+    /// Construct a new endpoint from type
+    pub fn from_type(r#type: BinanceEndpointType) -> Self {
+        match r#type {
+            BinanceEndpointType::Mainnet => {
+                let url: Url = Url::parse(SPOT_MAINNET).expect("Invalid rest API endpoint");
+                Self::new(url)
+            }
+            BinanceEndpointType::MainnetUs => {
+                let url: Url = Url::parse(SPOT_MAINNET_US).expect("Invalid rest API endpoint");
+                Self::new(url)
+            }
+            BinanceEndpointType::Testnet => {
+                let url: Url = Url::parse(SPOT_TESTNET).expect("Invalid rest API endpoint");
+                Self::new(url)
+            }
         }
+    }
+
+    /// Get URL endpoint
+    pub fn url(&self) -> &Url {
+        &self.url
     }
 }
 

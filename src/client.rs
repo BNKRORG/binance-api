@@ -50,7 +50,7 @@ impl BinanceClient {
     pub(super) fn from_builder(builder: BinanceClientBuilder) -> Result<Self, Error> {
         Ok(Self {
             client: Client::builder().timeout(builder.timeout).build()?,
-            host: builder.endpoint.url(),
+            host: builder.endpoint.url().clone(),
             auth: builder.auth,
             recv_window: builder.recv_window,
         })
